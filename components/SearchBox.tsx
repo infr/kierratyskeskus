@@ -128,7 +128,8 @@ export function SearchBox() {
   }
 
   function submit(query: string) {
-    if (!query.trim()) {
+    const trimmed = query.trim();
+    if (!trimmed) {
       const next = new URLSearchParams(sp.toString());
       next.delete('q'); next.delete('page');
       const qs = next.toString();
@@ -136,9 +137,11 @@ export function SearchBox() {
       setOpen(false);
       return;
     }
-    const href = buildSearchHref(query);
-    const entry = buildHistoryEntry(query, href);
-    pushHistory({ ...entry, q: query });
+    // New query from the search box is a fresh search: drop existing
+    // filters and pagination so results aren't constrained by leftover
+    // facets from the previous query.
+    const href = `/?q=${encodeURIComponent(trimmed)}`;
+    pushHistory({ label: trimmed, href, q: trimmed });
     router.push(href);
     setOpen(false);
   }
@@ -283,6 +286,9 @@ export function SearchBox() {
                 <span>Tuotteet</span>
                 {loading ? <span>haetaan…</span> : total != null && <span>{total.toLocaleString('fi-FI')} osumaa</span>}
               </SectionHeader>
+              {loading && products.length === 0 && categories.length === 0 && (
+                <SuggestSkeleton />
+              )}
               {products.length === 0 && !loading && (
                 <div className="px-3 py-3 text-muted">Ei osumia.</div>
               )}
@@ -326,6 +332,20 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between px-3 py-2 text-xs uppercase tracking-wide text-muted">
       {children}
+    </div>
+  );
+}
+
+function SuggestSkeleton() {
+  return (
+    <div>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div key={i} className="flex items-center gap-3 px-3 py-2">
+          <div className="w-10 h-10 skeleton flex-none rounded" />
+          <div className="flex-1 h-3 skeleton rounded" />
+          <div className="w-12 h-3 skeleton rounded" />
+        </div>
+      ))}
     </div>
   );
 }

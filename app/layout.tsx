@@ -59,19 +59,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="fi">
       <body className="min-h-screen flex flex-col">
-        <header className="bg-paper">
-          <div className="max-w-6xl mx-auto px-4 py-5 flex items-baseline gap-3">
-            <a href="/" className="font-semibold text-lg tracking-tight">Kierrätyskeskus</a>
-            <span className="text-xs text-muted hidden sm:inline">epävirallinen mobiilihaku</span>
+        <header className="bg-paper border-b border-line/60">
+          <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between text-sm">
+            <a href="/" className="text-muted hover:text-ink">Etusivu</a>
+            <a href="/info" className="text-muted hover:text-ink">Lisätietoja</a>
           </div>
         </header>
         <main className="flex-1 max-w-6xl w-full mx-auto px-4 pb-12">{children}</main>
-        <footer className="mt-8 py-6 text-xs text-muted text-center">
-          Tiedot:{' '}
+        <footer className="mt-8 py-6 text-xs text-muted text-center px-4">
+          Epävirallinen mobiilinäkymä. Tuotteet, kuvat ja hinnat tulevat{' '}
           <a className="underline underline-offset-2 hover:text-ink" href="https://kauppa.kierratyskeskus.fi" target="_blank" rel="noreferrer">
             kauppa.kierratyskeskus.fi
           </a>
-          . Ei virallinen.
+          -sivustolta, jossa myös ostokset tehdään.{' '}
+          <a className="underline underline-offset-2 hover:text-ink" href="/info">
+            Lisätietoja
+          </a>
+          .
         </footer>
         <JsonLd data={websiteJsonLd} />
       </body>

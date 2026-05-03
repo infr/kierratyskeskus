@@ -10,8 +10,8 @@ export function Pagination({ page, lastPage }: { page: number; lastPage: number 
   function go(p: number) {
     const next = new URLSearchParams(sp.toString());
     if (p > 1) next.set('page', String(p)); else next.delete('page');
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'auto' });
     router.push(`/?${next.toString()}`);
-    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   return (

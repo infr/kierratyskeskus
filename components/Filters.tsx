@@ -1,6 +1,6 @@
 'use client';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import type { AnyFilter } from '@/lib/api';
 
 function setListParam(p: URLSearchParams, key: string, vals: string[]) {
@@ -25,6 +25,7 @@ export function Filters({ filters }: { filters: AnyFilter[] }) {
   const router = useRouter();
   const sp = useSearchParams();
   const [open, setOpen] = useState(false);
+  const [, startTransition] = useTransition();
 
   const visible = dedupeByName(filters);
 
@@ -41,7 +42,12 @@ export function Filters({ filters }: { filters: AnyFilter[] }) {
     const next = new URLSearchParams(sp.toString());
     mutate(next);
     next.delete('page');
-    router.push(`/?${next.toString()}`);
+    // Wrap in startTransition so React keeps the current results visible
+    // while data refetches, instead of swapping the page Suspense boundary
+    // to its skeleton fallback (which feels like a full reload).
+    startTransition(() => {
+      router.push(`/?${next.toString()}`);
+    });
   }
 
   function toggleTerm(filterKey: string, value: string) {

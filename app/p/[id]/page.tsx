@@ -152,10 +152,6 @@ export default async function ProductPage({ params }: Props) {
               {longText}
             </div>
           )}
-
-          <p className="text-xs text-muted pt-6">
-            Epävirallinen mobiilinäkymä. "Osta" vie alkuperäiselle sivulle.
-          </p>
         </div>
 
         <Suspense fallback={<SimilarItemsSkeleton />}>

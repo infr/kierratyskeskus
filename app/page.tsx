@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import {
   searchProducts,
@@ -14,6 +15,7 @@ import { Pagination } from '@/components/Pagination';
 import { Breadcrumbs, type Crumb } from '@/components/Breadcrumbs';
 import { RecentSearches } from '@/components/RecentSearches';
 import { JsonLd } from '@/components/JsonLd';
+import { FiltersSkeleton, ProductGridSkeleton } from '@/components/Skeleton';
 
 type PageProps = {
   searchParams: Record<string, string | string[] | undefined>;
@@ -71,11 +73,9 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
 
 export default async function Home({ searchParams }: PageProps) {
   const parsed: ApiSearchParams = parseSearchParams(searchParams);
-
-  const [data, categories] = await Promise.all([
-    searchProducts(parsed),
-    getCategories().catch(() => [] as Awaited<ReturnType<typeof getCategories>>),
-  ]);
+  const categories = await getCategories().catch(
+    () => [] as Awaited<ReturnType<typeof getCategories>>,
+  );
 
   const u = new URLSearchParams();
   if (parsed.text) u.set('q', parsed.text);
@@ -95,11 +95,12 @@ export default async function Home({ searchParams }: PageProps) {
   for (const c of categoryPath) crumbs.push({ label: c.name, href: `/?categories=${c.id}` });
   if (parsed.text) crumbs.push({ label: `Haku: "${parsed.text}"` });
 
+  const isHome = !parsed.text && !categoryPath.length;
   const heading = parsed.text
     ? `Hakutulokset: "${parsed.text}"`
     : categoryPath.length
     ? categoryPath[categoryPath.length - 1].name
-    : 'Selaa Kierrätyskeskuksen tuotteita';
+    : 'Selaa käytettyjä tavaroita';
 
   const breadcrumbJsonLd =
     crumbs.length > 1
@@ -115,17 +116,57 @@ export default async function Home({ searchParams }: PageProps) {
         }
       : null;
 
+  const resultsKey = JSON.stringify(searchParams ?? {});
+
   return (
     <div className="space-y-5">
       <link rel="canonical" href={canonical} />
       {crumbs.length > 1 && <Breadcrumbs items={crumbs} />}
 
-      <h1 className="text-2xl font-semibold tracking-tight">{heading}</h1>
+      <div className={isHome ? 'pt-2' : ''}>
+        <h1 className={isHome ? 'text-3xl sm:text-4xl font-semibold tracking-tight' : 'text-2xl font-semibold tracking-tight'}>
+          {heading}
+        </h1>
+        {isHome && (
+          <p className="text-sm text-muted mt-2 max-w-xl">
+            Epävirallinen mobiilihaku{' '}
+            <a className="underline underline-offset-2 hover:text-ink" href="https://kauppa.kierratyskeskus.fi" target="_blank" rel="noreferrer">
+              kauppa.kierratyskeskus.fi
+            </a>
+            -sivuston tuotteisiin.
+          </p>
+        )}
+      </div>
 
       <SearchBox />
 
       <RecentSearches />
 
+      <Suspense key={resultsKey} fallback={<ResultsSkeleton />}>
+        <Results parsed={parsed} />
+      </Suspense>
+
+      {breadcrumbJsonLd && <JsonLd data={breadcrumbJsonLd} />}
+    </div>
+  );
+}
+
+function ResultsSkeleton() {
+  return (
+    <>
+      <div className="h-3 skeleton rounded w-32" />
+      <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-x-8 gap-y-4">
+        <div className="hidden md:block"><FiltersSkeleton /></div>
+        <ProductGridSkeleton count={12} />
+      </div>
+    </>
+  );
+}
+
+async function Results({ parsed }: { parsed: ApiSearchParams }) {
+  const data = await searchProducts(parsed);
+  return (
+    <>
       <div className="text-xs text-muted uppercase tracking-wider">
         {data.total.toLocaleString('fi-FI')} tulosta
       </div>
@@ -148,8 +189,6 @@ export default async function Home({ searchParams }: PageProps) {
           <Pagination page={data.current_page} lastPage={data.last_page} />
         </section>
       </div>
-
-      {breadcrumbJsonLd && <JsonLd data={breadcrumbJsonLd} />}
-    </div>
+    </>
   );
 }
