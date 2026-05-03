@@ -68,7 +68,7 @@ export default async function ProductPage({ params }: Props) {
 
   const crumbs: Crumb[] = [
     { label: 'Etusivu', href: '/' },
-    ...path.map((c) => ({ label: c.name, href: `/?categories=${c.id}` })),
+    ...path.map((c) => ({ label: c.name, href: `/${c.slug}` })),
     { label: product.name },
   ];
 

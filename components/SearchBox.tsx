@@ -14,7 +14,7 @@ import {
 import { rememberSearch } from '@/components/BackToSearch';
 
 type ProductHit = { id: string | number; name: string; price: string; image: string | null };
-type CategoryHit = { id: number; name: string };
+type CategoryHit = { id: number; name: string; slug?: string };
 type Resp = { query: string; categories: CategoryHit[]; products: ProductHit[]; total?: number };
 
 type Item =
@@ -147,7 +147,7 @@ export function SearchBox() {
   }
 
   function selectCategory(c: CategoryHit) {
-    const href = `/?categories=${c.id}`;
+    const href = c.slug ? `/${c.slug}` : `/?categories=${c.id}`;
     pushHistory({ label: c.name, href });
     router.push(href);
     setOpen(false);

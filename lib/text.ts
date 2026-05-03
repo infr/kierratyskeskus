@@ -10,7 +10,13 @@ export function htmlToText(html?: string | null): string {
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) =>
+      String.fromCodePoint(parseInt(hex, 16)),
+    )
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(Number(dec)))
+    .split('\n')
+    .map((line) => line.replace(/[ \t]+$/, '').replace(/^[ \t]+/, ''))
+    .join('\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 }

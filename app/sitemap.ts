@@ -16,12 +16,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     searchProducts({ perPage: 200 }).catch(() => null),
   ]);
 
-  for (const c of categories) {
+  // Emit one URL per unique slug. Roots take priority over duplicate child slugs.
+  const seen = new Set<string>();
+  const sorted = [...categories].sort((a, b) =>
+    a.parent_id == null ? -1 : b.parent_id == null ? 1 : 0,
+  );
+  for (const c of sorted) {
+    if (seen.has(c.slug)) continue;
+    seen.add(c.slug);
     entries.push({
-      url: absoluteUrl(`/?categories=${c.id}`),
+      url: absoluteUrl(`/${c.slug}`),
       lastModified: now,
       changeFrequency: 'daily',
-      priority: 0.6,
+      priority: c.parent_id == null ? 0.7 : 0.6,
     });
   }
 

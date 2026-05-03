@@ -92,7 +92,7 @@ export default async function Home({ searchParams }: PageProps) {
     : [];
 
   const crumbs: Crumb[] = [{ label: 'Etusivu', href: '/' }];
-  for (const c of categoryPath) crumbs.push({ label: c.name, href: `/?categories=${c.id}` });
+  for (const c of categoryPath) crumbs.push({ label: c.name, href: `/${c.slug}` });
   if (parsed.text) crumbs.push({ label: `Haku: "${parsed.text}"` });
 
   const isHome = !parsed.text && !categoryPath.length;
@@ -143,7 +143,7 @@ export default async function Home({ searchParams }: PageProps) {
       <RecentSearches />
 
       <Suspense key={resultsKey} fallback={<ResultsSkeleton />}>
-        <Results parsed={parsed} />
+        <Results parsed={parsed} categories={categories} />
       </Suspense>
 
       {breadcrumbJsonLd && <JsonLd data={breadcrumbJsonLd} />}
@@ -163,7 +163,13 @@ function ResultsSkeleton() {
   );
 }
 
-async function Results({ parsed }: { parsed: ApiSearchParams }) {
+async function Results({
+  parsed,
+  categories,
+}: {
+  parsed: ApiSearchParams;
+  categories: Awaited<ReturnType<typeof getCategories>>;
+}) {
   const data = await searchProducts(parsed);
   return (
     <>
@@ -172,7 +178,7 @@ async function Results({ parsed }: { parsed: ApiSearchParams }) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-x-8 gap-y-4">
-        <Filters filters={data.available_filters} />
+        <Filters filters={data.available_filters} allCategories={categories} />
 
         <section>
           {data.data.length === 0 ? (

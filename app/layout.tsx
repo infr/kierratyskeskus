@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { SITE_NAME, SITE_TAGLINE, SITE_URL } from '@/lib/site';
 import { JsonLd } from '@/components/JsonLd';
+import { CategoriesMenu } from '@/components/CategoriesMenu';
+import { getCategories, type Category } from '@/lib/api';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -55,14 +57,16 @@ const websiteJsonLd = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const categories = await getCategories().catch(() => [] as Category[]);
   return (
     <html lang="fi">
       <body className="min-h-screen flex flex-col">
         <header className="bg-paper border-b border-line/60">
-          <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between text-sm">
+          <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-4 text-sm">
             <a href="/" className="text-muted hover:text-ink">Etusivu</a>
-            <a href="/info" className="text-muted hover:text-ink">Lisätietoja</a>
+            {categories.length > 0 && <CategoriesMenu categories={categories} />}
+            <a href="/info" className="text-muted hover:text-ink ml-auto">Lisätietoja</a>
           </div>
         </header>
         <main className="flex-1 max-w-6xl w-full mx-auto px-4 pb-12">{children}</main>

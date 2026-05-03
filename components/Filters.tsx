@@ -1,7 +1,8 @@
 'use client';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import type { AnyFilter } from '@/lib/api';
+import type { AnyFilter, Category } from '@/lib/api';
+import { categoryHref } from '@/lib/categories';
 
 function setListParam(p: URLSearchParams, key: string, vals: string[]) {
   if (vals.length) p.set(key, vals.join(',')); else p.delete(key);
@@ -21,9 +22,18 @@ function dedupeByName(filters: AnyFilter[]): AnyFilter[] {
   return filters.filter((f) => winners.get(f.name) === f);
 }
 
-export function Filters({ filters }: { filters: AnyFilter[] }) {
+export function Filters({
+  filters,
+  allCategories,
+  activeCategoryId,
+}: {
+  filters: AnyFilter[];
+  allCategories?: Category[];
+  activeCategoryId?: number;
+}) {
   const router = useRouter();
   const sp = useSearchParams();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [, startTransition] = useTransition();
 
@@ -32,7 +42,7 @@ export function Filters({ filters }: { filters: AnyFilter[] }) {
   const activeCount = (() => {
     let n = 0;
     for (const [k, v] of sp.entries()) {
-      if (k === 'q' || k === 'page') continue;
+      if (k === 'q' || k === 'page' || k === 'categories') continue;
       if (v) n += k === 'priceMin' || k === 'priceMax' ? 1 : v.split(',').length;
     }
     return n;
@@ -42,11 +52,9 @@ export function Filters({ filters }: { filters: AnyFilter[] }) {
     const next = new URLSearchParams(sp.toString());
     mutate(next);
     next.delete('page');
-    // Wrap in startTransition so React keeps the current results visible
-    // while data refetches, instead of swapping the page Suspense boundary
-    // to its skeleton fallback (which feels like a full reload).
+    const qs = next.toString();
     startTransition(() => {
-      router.push(`/?${next.toString()}`);
+      router.push(qs ? `${pathname}?${qs}` : pathname);
     });
   }
 
@@ -65,6 +73,27 @@ export function Filters({ filters }: { filters: AnyFilter[] }) {
     });
   }
 
+  const otherTerms = visible.filter(
+    (f) =>
+      f.type === 'TERM' &&
+      (f as any).options?.length &&
+      f.key !== 'categories' &&
+      f.key !== 'cross_categories',
+  );
+
+  const categoriesFilter = visible.find(
+    (f) => f.type === 'TERM' && (f.key === 'categories' || f.key === 'cross_categories'),
+  ) as
+    | { key: string; name: string; options: { value: string; name: string; count: number }[] }
+    | undefined;
+
+  const hasFilters =
+    !!visible.find((f) => f.key === 'price') || otherTerms.length > 0;
+
+  const showCategoryList = !!(categoriesFilter && allCategories && allCategories.length > 0);
+
+  if (!hasFilters && !showCategoryList) return null;
+
   return (
     <>
       <button
@@ -76,33 +105,97 @@ export function Filters({ filters }: { filters: AnyFilter[] }) {
         <span className="text-muted">{open ? '−' : '+'}</span>
       </button>
 
-      <aside className={`${open ? 'block' : 'hidden'} md:block bg-white rounded-md ring-1 ring-black/5 p-4`}>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xs uppercase tracking-wider text-muted">Suodattimet</h2>
-          {activeCount > 0 && (
-            <button onClick={clearAll} className="text-xs text-ink/70 hover:text-ink underline-offset-2 hover:underline">
-              Tyhjennä ({activeCount})
-            </button>
-          )}
-        </div>
+      <aside className={`${open ? 'block' : 'hidden'} md:block space-y-3`}>
+        {showCategoryList && (
+          <div className="bg-white rounded-md ring-1 ring-black/5 p-4">
+            <h2 className="text-xs uppercase tracking-wider text-muted mb-3">Kategoriat</h2>
+            <CategoryList
+              filter={categoriesFilter!}
+              allCategories={allCategories!}
+              activeCategoryId={activeCategoryId}
+            />
+          </div>
+        )}
 
-        <div className="space-y-5">
-          <PriceFilter filter={visible.find((f) => f.key === 'price') as any} update={update} />
-          <BoolFilter filter={visible.find((f) => f.key === 'inStock') as any} update={update} />
+        {hasFilters && (
+          <div className="bg-white rounded-md ring-1 ring-black/5 p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xs uppercase tracking-wider text-muted">Suodattimet</h2>
+              {activeCount > 0 && (
+                <button onClick={clearAll} className="text-xs text-ink/70 hover:text-ink underline-offset-2 hover:underline">
+                  Tyhjennä ({activeCount})
+                </button>
+              )}
+            </div>
 
-          {visible
-            .filter((f) => f.type === 'TERM' && (f as any).options?.length)
-            .map((f: any) => (
-              <TermBlock
-                key={f.key}
-                filter={f}
-                selected={(sp.get(f.key) ?? '').split(',').filter(Boolean)}
-                onToggle={(v) => toggleTerm(f.key, v)}
-              />
-            ))}
-        </div>
+            <div className="space-y-5">
+              <PriceFilter filter={visible.find((f) => f.key === 'price') as any} update={update} />
+
+              {otherTerms.map((f: any) => (
+                <TermBlock
+                  key={f.key}
+                  filter={f}
+                  selected={(sp.get(f.key) ?? '').split(',').filter(Boolean)}
+                  onToggle={(v) => toggleTerm(f.key, v)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </aside>
     </>
+  );
+}
+
+function CategoryList({
+  filter,
+  allCategories,
+  activeCategoryId,
+}: {
+  filter: { options: { value: string; name: string; count: number }[] };
+  allCategories: Category[];
+  activeCategoryId?: number;
+}) {
+  const [showAll, setShowAll] = useState(false);
+  const catById = new Map(allCategories.map((c) => [c.id, c]));
+
+  // Highest counts first; the filter is a navigation aid in this context,
+  // so the most populated categories are the most useful entry points.
+  const sorted = filter.options
+    .map((o) => ({ option: o, cat: catById.get(Number(o.value)) }))
+    .filter((x): x is { option: typeof x.option; cat: Category } => !!x.cat)
+    .sort((a, b) => b.option.count - a.option.count);
+
+  const limit = 10;
+  const visible = showAll ? sorted : sorted.slice(0, limit);
+
+  return (
+    <ul className="space-y-0.5">
+      {visible.map(({ option, cat }) => {
+        const active = activeCategoryId === cat.id;
+        return (
+          <li key={cat.id}>
+            <a
+              href={categoryHref(cat.slug)}
+              className={`flex items-center gap-2 text-sm py-1 ${active ? 'font-medium text-ink' : 'text-ink/90 hover:text-ink'}`}
+            >
+              <span className="flex-1">{cat.name}</span>
+              <span className="text-muted text-xs">{option.count}</span>
+            </a>
+          </li>
+        );
+      })}
+      {sorted.length > limit && (
+        <li>
+          <button
+            onClick={() => setShowAll((v) => !v)}
+            className="text-xs text-ink/80 hover:text-ink underline-offset-2 hover:underline mt-1"
+          >
+            {showAll ? 'Näytä vähemmän' : `Näytä kaikki (${sorted.length})`}
+          </button>
+        </li>
+      )}
+    </ul>
   );
 }
 
@@ -117,6 +210,10 @@ function TermBlock({
 }) {
   const [showAll, setShowAll] = useState(false);
   const opts = showAll ? filter.options : filter.options.slice(0, 8);
+  // When this facet has an active selection the API switches to global
+  // (catalog-wide) counts for every option in this facet, so the numbers
+  // would no longer reflect the current search. Hide them in that case.
+  const hideCounts = selected.length > 0;
   return (
     <details open className="group">
       <summary className="cursor-pointer font-medium text-sm py-1.5 list-none flex justify-between items-center">
@@ -131,7 +228,7 @@ function TermBlock({
               <label className="flex items-center gap-2 text-sm py-1 cursor-pointer text-ink hover:text-ink">
                 <input type="checkbox" checked={on} onChange={() => onToggle(o.value)} className="accent-ink w-4 h-4" />
                 <span className="flex-1">{o.name}</span>
-                <span className="text-muted text-xs">{o.count}</span>
+                {!hideCounts && <span className="text-muted text-xs">{o.count}</span>}
               </label>
             </li>
           );
@@ -203,25 +300,3 @@ function PriceFilter({
   );
 }
 
-function BoolFilter({
-  filter,
-  update,
-}: {
-  filter?: { key: string; name: string };
-  update: (m: (p: URLSearchParams) => void) => void;
-}) {
-  const sp = useSearchParams();
-  if (!filter) return null;
-  const on = sp.get(filter.key) === '1';
-  return (
-    <label className="flex items-center gap-2 text-sm cursor-pointer">
-      <input
-        type="checkbox"
-        checked={on}
-        onChange={() => update((p) => (on ? p.delete(filter.key) : p.set(filter.key, '1')))}
-        className="accent-ink w-4 h-4"
-      />
-      <span>{filter.name}</span>
-    </label>
-  );
-}

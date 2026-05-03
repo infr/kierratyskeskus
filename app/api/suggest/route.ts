@@ -36,6 +36,7 @@ export async function GET(req: NextRequest) {
     const categories = rankCategoryMatches(allCategories, q, 5).map((c) => ({
       id: c.id,
       name: c.name,
+      slug: c.slug,
     }));
 
     const products = data.data.slice(0, 6).map((p) => ({

@@ -12,7 +12,10 @@ export function parseSearchParams(sp: Record<string, string | string[] | undefin
   const out: SearchParams = {
     text: typeof sp.q === 'string' ? sp.q : undefined,
     page: sp.page ? Number(sp.page) || 1 : 1,
-    inStock: sp.inStock === '1' || sp.inStock === 'true',
+    // Default to in-stock-only when not specified — the API otherwise
+    // includes sold-out items in counts/totals but not in page data,
+    // making both pagination and facet counts misleading.
+    inStock: sp.inStock === '0' || sp.inStock === 'false' ? false : true,
     priceMin: sp.priceMin ? Number(sp.priceMin) : undefined,
     priceMax: sp.priceMax ? Number(sp.priceMax) : undefined,
     filters,

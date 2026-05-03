@@ -1,9 +1,10 @@
 'use client';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 
 export function Pagination({ page, lastPage }: { page: number; lastPage: number }) {
   const router = useRouter();
   const sp = useSearchParams();
+  const pathname = usePathname();
 
   if (lastPage <= 1) return null;
 
@@ -11,7 +12,8 @@ export function Pagination({ page, lastPage }: { page: number; lastPage: number 
     const next = new URLSearchParams(sp.toString());
     if (p > 1) next.set('page', String(p)); else next.delete('page');
     if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'auto' });
-    router.push(`/?${next.toString()}`);
+    const qs = next.toString();
+    router.push(qs ? `${pathname}?${qs}` : pathname);
   }
 
   return (
