@@ -32,7 +32,7 @@ const RESERVED_SLUGS = new Set([
 ]);
 
 type PageProps = {
-  params: { slug: string };
+  params: { catSlug: string };
   searchParams: Record<string, string | string[] | undefined>;
 };
 
@@ -45,7 +45,7 @@ async function resolveCategory(slug: string): Promise<{ category: Category; cate
 }
 
 export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
-  const resolved = await resolveCategory(params.slug);
+  const resolved = await resolveCategory(params.catSlug);
   if (!resolved) return { title: 'Kategoriaa ei löytynyt', robots: { index: false, follow: false } };
   const { category } = resolved;
   const parsed = parseSearchParams(searchParams);
@@ -66,7 +66,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
 }
 
 export default async function CategoryPage({ params, searchParams }: PageProps) {
-  const resolved = await resolveCategory(params.slug);
+  const resolved = await resolveCategory(params.catSlug);
   if (!resolved) notFound();
   const { category, categories } = resolved;
 
@@ -173,7 +173,7 @@ async function Results({
             <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-6">
               {data.data.map((p) => (
                 <li key={p.id}>
-                  <ProductCard p={p} />
+                  <ProductCard p={p} categories={categories} />
                 </li>
               ))}
             </ul>

@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { getCategories, searchProducts } from '@/lib/api';
+import { productHref } from '@/lib/categories';
 import { absoluteUrl } from '@/lib/site';
 
 export const revalidate = 3600;
@@ -35,7 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (recent?.data?.length) {
     for (const p of recent.data) {
       entries.push({
-        url: absoluteUrl(`/p/${p.id}`),
+        url: absoluteUrl(productHref(p, categories)),
         lastModified: now,
         changeFrequency: 'weekly',
         priority: 0.7,

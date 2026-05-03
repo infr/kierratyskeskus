@@ -1,10 +1,24 @@
 export const API_ORIGIN = 'https://kauppa.kierratyskeskus.fi';
 export const API_BASE = `${API_ORIGIN}/backend/api/v1`;
 
-export type ImageSizes = { small?: string; medium?: string; large?: string; original?: string };
+export type ImageSizes = {
+  small?: string;
+  medium?: string;
+  large?: string;
+  full?: string;
+  original?: string;
+};
 export type ProductImage = { id: number; product_id: string; sizes: ImageSizes };
 export type Price = { with_tax: number; without_tax: number };
 export type PriceInfo = { price: Price; normal_price?: Price; lowest_price_30d?: Price };
+
+export type ExtraProperty = {
+  id: number;
+  name: string;
+  value_id: number;
+  value_name: string;
+  use_search?: boolean;
+};
 
 export type Product = {
   id: number | string;
@@ -20,6 +34,7 @@ export type Product = {
   sold_out?: boolean;
   stock_unit?: string;
   free_quantity?: number;
+  extra_properties?: ExtraProperty[];
 };
 
 export type FilterOption = { value: string; count: number; name: string };
@@ -172,7 +187,7 @@ export async function getProduct(id: string | number): Promise<Product> {
 
 export function productImage(p: Product, size: keyof ImageSizes = 'medium'): string | undefined {
   const img = p.images?.[0]?.sizes;
-  return img?.[size] ?? img?.original ?? img?.large ?? img?.medium ?? img?.small;
+  return img?.[size] ?? img?.full ?? img?.original ?? img?.large ?? img?.medium ?? img?.small;
 }
 
 export function deepLink(p: Pick<Product, 'id' | 'slug'>): string {

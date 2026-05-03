@@ -1,13 +1,14 @@
-import { searchProducts } from '@/lib/api';
+import { searchProducts, type Category } from '@/lib/api';
 import { ProductCard } from './ProductCard';
 
 type Props = {
   categoryId?: number | null;
   excludeId: string | number;
   limit?: number;
+  categories?: Category[];
 };
 
-export async function SimilarItems({ categoryId, excludeId, limit = 8 }: Props) {
+export async function SimilarItems({ categoryId, excludeId, limit = 8, categories }: Props) {
   if (!categoryId) return null;
 
   let products;
@@ -29,7 +30,7 @@ export async function SimilarItems({ categoryId, excludeId, limit = 8 }: Props) 
       <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-6">
         {products.map((p) => (
           <li key={p.id}>
-            <ProductCard p={p} />
+            <ProductCard p={p} categories={categories} />
           </li>
         ))}
       </ul>

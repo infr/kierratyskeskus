@@ -6,6 +6,7 @@ import {
   formatPrice,
   type Category,
 } from '@/lib/api';
+import { productHref } from '@/lib/categories';
 
 export const runtime = 'nodejs';
 
@@ -44,6 +45,7 @@ export async function GET(req: NextRequest) {
       name: p.name,
       price: formatPrice(p.price_info),
       image: productImage(p, 'small') ?? null,
+      href: productHref(p, allCategories),
     }));
 
     return NextResponse.json({ query: q, total: data.total, categories, products });

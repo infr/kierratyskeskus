@@ -1,13 +1,21 @@
 import Link from 'next/link';
-import { formatPrice, productImage, type Product } from '@/lib/api';
+import { formatPrice, productImage, type Category, type Product } from '@/lib/api';
+import { productHref } from '@/lib/categories';
 
-export function ProductCard({ p }: { p: Product }) {
+export function ProductCard({
+  p,
+  categories,
+}: {
+  p: Product;
+  categories?: Category[];
+}) {
   const img = productImage(p, 'medium') ?? productImage(p, 'small');
   const price = formatPrice(p.price_info);
+  const href = categories ? productHref(p, categories) : `/p/${p.id}`;
 
   return (
     <Link
-      href={`/p/${p.id}`}
+      href={href}
       className="block group bg-white rounded-md ring-1 ring-black/5 overflow-hidden hover:ring-black/15 transition"
     >
       <div className="aspect-square overflow-hidden">

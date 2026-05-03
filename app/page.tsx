@@ -187,7 +187,7 @@ async function Results({
             <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-6">
               {data.data.map((p) => (
                 <li key={p.id}>
-                  <ProductCard p={p} />
+                  <ProductCard p={p} categories={categories} />
                 </li>
               ))}
             </ul>

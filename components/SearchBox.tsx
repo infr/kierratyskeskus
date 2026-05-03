@@ -13,7 +13,7 @@ import {
 } from '@/lib/history';
 import { rememberSearch } from '@/components/BackToSearch';
 
-type ProductHit = { id: string | number; name: string; price: string; image: string | null };
+type ProductHit = { id: string | number; name: string; price: string; image: string | null; href?: string };
 type CategoryHit = { id: number; name: string; slug?: string };
 type Resp = { query: string; categories: CategoryHit[]; products: ProductHit[]; total?: number };
 
@@ -159,7 +159,7 @@ export function SearchBox() {
       const entry = buildHistoryEntry(val, href);
       pushHistory({ ...entry, q: val });
     }
-    router.push(`/p/${p.id}`);
+    router.push(p.href ?? `/p/${p.id}`);
     setOpen(false);
   }
 

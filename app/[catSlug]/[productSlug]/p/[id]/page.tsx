@@ -12,7 +12,9 @@ import { htmlToText } from '@/lib/text';
 import { absoluteUrl, SITE_NAME, truncate } from '@/lib/site';
 import { ProductPageView } from '@/components/ProductPageView';
 
-type Props = { params: { id: string } };
+type Props = {
+  params: { catSlug: string; productSlug: string; id: string };
+};
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProduct(params.id).catch(() => null);
@@ -48,18 +50,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-// Legacy route. New canonical is /<root-cat>/<product-slug>/p/<id>.
-// We redirect there when we can resolve the category; otherwise we render
-// in place so existing links never 404.
-export default async function LegacyProductPage({ params }: Props) {
+export default async function ProductPage({ params }: Props) {
   const [product, categories] = await Promise.all([
     getProduct(params.id).catch(() => null),
     getCategories().catch(() => [] as Category[]),
   ]);
   if (!product) notFound();
 
+  // If the URL slugs don't match the canonical, send the user to the
+  // canonical URL (e.g. typo / outdated link) — keeps SEO clean.
   const canonical = productHref(product, categories);
-  if (canonical !== `/p/${params.id}`) {
+  const requested = `/${params.catSlug}/${params.productSlug}/p/${params.id}`;
+  if (canonical !== requested && canonical !== `/p/${params.id}`) {
     redirect(canonical);
   }
 
