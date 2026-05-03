@@ -1,7 +1,7 @@
 'use client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { pushHistory, readHistory, removeHistory, clearHistory } from '@/lib/history';
+import { pushHistory, readHistory, removeHistory, clearHistory, onHistoryChange } from '@/lib/history';
 import { rememberSearch } from '@/components/BackToSearch';
 
 type Suggestion = { id: string | number; name: string; price: string; image: string | null };
@@ -21,7 +21,10 @@ export function SearchBox() {
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => { setVal(sp.get('q') ?? ''); }, [sp]);
-  useEffect(() => { setHistory(readHistory()); }, []);
+  useEffect(() => {
+    setHistory(readHistory());
+    return onHistoryChange(() => setHistory(readHistory()));
+  }, []);
   useEffect(() => {
     if (typeof window !== 'undefined') {
       rememberSearch(window.location.pathname + window.location.search);

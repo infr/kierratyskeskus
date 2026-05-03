@@ -1,9 +1,58 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { SITE_NAME, SITE_TAGLINE, SITE_URL } from '@/lib/site';
+import { JsonLd } from '@/components/JsonLd';
 
 export const metadata: Metadata = {
-  title: 'Kierrätyskeskus mobile-friendly search',
-  description: 'Mobiilikäyttöinen näkymä kauppa.kierratyskeskus.fi -tuotteille suodattimineen.',
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${SITE_NAME} | Kaikki tuotteet ja suodattimet mobiilissa`,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: SITE_TAGLINE,
+  applicationName: SITE_NAME,
+  keywords: [
+    'kierrätyskeskus',
+    'käytetyt tavarat',
+    'kirpputori',
+    'second hand',
+    'pääkaupunkiseutu',
+    'kierrätys',
+    'mobiilihaku',
+  ],
+  openGraph: {
+    type: 'website',
+    siteName: SITE_NAME,
+    locale: 'fi_FI',
+    url: SITE_URL,
+    title: `${SITE_NAME} | Kaikki tuotteet ja suodattimet mobiilissa`,
+    description: SITE_TAGLINE,
+  },
+  twitter: {
+    card: 'summary',
+    title: `${SITE_NAME} | Kaikki tuotteet ja suodattimet mobiilissa`,
+    description: SITE_TAGLINE,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
+  },
+};
+
+const websiteJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: SITE_NAME,
+  url: SITE_URL,
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: `${SITE_URL}/?q={search_term_string}`,
+    },
+    'query-input': 'required name=search_term_string',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -24,6 +73,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </a>
           . Ei virallinen.
         </footer>
+        <JsonLd data={websiteJsonLd} />
       </body>
     </html>
   );
