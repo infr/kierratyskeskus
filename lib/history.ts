@@ -1,4 +1,6 @@
-const KEY = 'kk:history';
+export type HistoryEntry = { label: string; href: string };
+
+const KEY = 'kk:history:v2';
 const EVENT = 'kk:history-change';
 const LIMIT = 8;
 
@@ -7,28 +9,31 @@ function broadcast() {
   window.dispatchEvent(new Event(EVENT));
 }
 
-export function readHistory(): string[] {
+export function readHistory(): HistoryEntry[] {
   if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.filter((s) => typeof s === 'string') : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((e): e is HistoryEntry =>
+      e && typeof e === 'object' && typeof e.label === 'string' && typeof e.href === 'string',
+    );
   } catch {
     return [];
   }
 }
 
-export function pushHistory(q: string): string[] {
-  if (typeof window === 'undefined' || !q.trim()) return readHistory();
+export function pushHistory(entry: HistoryEntry): HistoryEntry[] {
+  if (typeof window === 'undefined' || !entry.label.trim()) return readHistory();
   const cur = readHistory();
-  const next = [q.trim(), ...cur.filter((s) => s.toLowerCase() !== q.trim().toLowerCase())].slice(0, LIMIT);
+  const next = [entry, ...cur.filter((e) => e.href !== entry.href)].slice(0, LIMIT);
   try { localStorage.setItem(KEY, JSON.stringify(next)); broadcast(); } catch {}
   return next;
 }
 
-export function removeHistory(q: string): string[] {
-  const next = readHistory().filter((s) => s !== q);
+export function removeHistory(href: string): HistoryEntry[] {
+  const next = readHistory().filter((e) => e.href !== href);
   try { localStorage.setItem(KEY, JSON.stringify(next)); broadcast(); } catch {}
   return next;
 }
@@ -45,4 +50,20 @@ export function onHistoryChange(handler: () => void): () => void {
     window.removeEventListener(EVENT, handler);
     window.removeEventListener('storage', handler);
   };
+}
+
+export function countActiveFilters(sp: URLSearchParams): number {
+  let n = 0;
+  for (const [k, v] of sp.entries()) {
+    if (k === 'q' || k === 'page') continue;
+    if (!v) continue;
+    n += k === 'priceMin' || k === 'priceMax' ? 1 : v.split(',').length;
+  }
+  return n;
+}
+
+export function summarizeFilters(sp: URLSearchParams): string {
+  const n = countActiveFilters(sp);
+  if (!n) return '';
+  return n === 1 ? '1 suodatin' : `${n} suodatinta`;
 }

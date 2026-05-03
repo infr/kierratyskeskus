@@ -1,11 +1,17 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { readHistory, removeHistory, clearHistory, onHistoryChange } from '@/lib/history';
+import {
+  readHistory,
+  removeHistory,
+  clearHistory,
+  onHistoryChange,
+  type HistoryEntry,
+} from '@/lib/history';
 
 export function RecentSearches() {
   const router = useRouter();
-  const [history, setHistory] = useState<string[]>([]);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -20,21 +26,21 @@ export function RecentSearches() {
     <div className="flex flex-wrap items-center gap-2">
       <span className="text-xs uppercase tracking-wider text-muted">Aiemmat haut</span>
       <ul className="flex flex-wrap gap-2 flex-1 min-w-0">
-        {history.map((q) => (
-          <li key={q}>
+        {history.map((entry) => (
+          <li key={entry.href}>
             <span className="inline-flex items-center gap-1 rounded-full bg-white ring-1 ring-black/5 pl-3 pr-1 py-1 text-sm">
               <button
                 type="button"
                 className="hover:text-ink"
-                onClick={() => router.push(`/?q=${encodeURIComponent(q)}`)}
+                onClick={() => router.push(entry.href)}
               >
-                {q}
+                {entry.label}
               </button>
               <button
                 type="button"
-                aria-label={`Poista ${q}`}
+                aria-label={`Poista ${entry.label}`}
                 className="text-muted hover:text-ink w-5 h-5 inline-flex items-center justify-center rounded-full"
-                onClick={() => setHistory(removeHistory(q))}
+                onClick={() => setHistory(removeHistory(entry.href))}
               >
                 ×
               </button>
