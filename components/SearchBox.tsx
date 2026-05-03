@@ -48,6 +48,21 @@ export function SearchBox() {
     }
   }, [sp]);
 
+  // Auto-save the current search state to history (debounced) so refining
+  // filters after a search updates the saved entry instead of leaving it stale.
+  useEffect(() => {
+    const params = new URLSearchParams(sp.toString());
+    const q = params.get('q')?.trim() ?? '';
+    if (!q) return;
+    const t = setTimeout(() => {
+      const href = `/?${params.toString()}`;
+      const summary = summarizeFilters(params);
+      const label = summary ? `${q} · ${summary}` : q;
+      pushHistory({ label, href, q });
+    }, 800);
+    return () => clearTimeout(t);
+  }, [sp]);
+
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
       if (!wrapperRef.current?.contains(e.target as Node)) setOpen(false);
@@ -122,7 +137,8 @@ export function SearchBox() {
       return;
     }
     const href = buildSearchHref(query);
-    pushHistory(buildHistoryEntry(query, href));
+    const entry = buildHistoryEntry(query, href);
+    pushHistory({ ...entry, q: query });
     router.push(href);
     setOpen(false);
   }
@@ -137,7 +153,8 @@ export function SearchBox() {
   function selectProduct(p: ProductHit) {
     if (val.trim()) {
       const href = buildSearchHref(val);
-      pushHistory(buildHistoryEntry(val, href));
+      const entry = buildHistoryEntry(val, href);
+      pushHistory({ ...entry, q: val });
     }
     router.push(`/p/${p.id}`);
     setOpen(false);

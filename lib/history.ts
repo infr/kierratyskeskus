@@ -1,4 +1,4 @@
-export type HistoryEntry = { label: string; href: string };
+export type HistoryEntry = { label: string; href: string; q?: string };
 
 const KEY = 'kk:history:v2';
 const EVENT = 'kk:history-change';
@@ -16,9 +16,11 @@ export function readHistory(): HistoryEntry[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter((e): e is HistoryEntry =>
-      e && typeof e === 'object' && typeof e.label === 'string' && typeof e.href === 'string',
-    );
+    return parsed
+      .filter((e): e is HistoryEntry =>
+        e && typeof e === 'object' && typeof e.label === 'string' && typeof e.href === 'string',
+      )
+      .map((e) => ({ ...e, q: typeof e.q === 'string' ? e.q : undefined }));
   } catch {
     return [];
   }
@@ -27,7 +29,12 @@ export function readHistory(): HistoryEntry[] {
 export function pushHistory(entry: HistoryEntry): HistoryEntry[] {
   if (typeof window === 'undefined' || !entry.label.trim()) return readHistory();
   const cur = readHistory();
-  const next = [entry, ...cur.filter((e) => e.href !== entry.href)].slice(0, LIMIT);
+  // If the entry has a query, dedupe by query so refining filters on the same
+  // search replaces the older snapshot. Otherwise dedupe by exact href.
+  const dedup = entry.q
+    ? (e: HistoryEntry) => e.q?.toLowerCase() !== entry.q!.toLowerCase()
+    : (e: HistoryEntry) => e.href !== entry.href;
+  const next = [entry, ...cur.filter(dedup)].slice(0, LIMIT);
   try { localStorage.setItem(KEY, JSON.stringify(next)); broadcast(); } catch {}
   return next;
 }
