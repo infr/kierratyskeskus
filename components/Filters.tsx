@@ -7,10 +7,10 @@ function setListParam(p: URLSearchParams, key: string, vals: string[]) {
   if (vals.length) p.set(key, vals.join(',')); else p.delete(key);
 }
 
-// API sometimes returns multiple filters with the same display name (e.g. both
-// `categories` and `cross_categories` are labeled "Kategoriat"). When two
-// filters share a name we drop the duplicate that has fewer options — the
-// richer one is more useful as the single visible facet.
+// API sometimes returns multiple filters with the same display name (e.g.
+// both `categories` and `cross_categories` are labeled "Kategoriat"). When
+// two share a name we keep the one with more options, since the richer set
+// is more useful as the single visible facet.
 function dedupeByName(filters: AnyFilter[]): AnyFilter[] {
   const optionCount = (f: AnyFilter) => (f.type === 'TERM' ? f.options.length : 0);
   const winners = new Map<string, AnyFilter>();
