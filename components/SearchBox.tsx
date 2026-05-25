@@ -12,6 +12,7 @@ import {
   type HistoryEntry,
 } from '@/lib/history';
 import { rememberSearch } from '@/components/BackToSearch';
+import { HotlinkImage } from '@/components/HotlinkImage';
 
 type ProductHit = { id: string | number; name: string; price: string; image: string | null; href?: string };
 type CategoryHit = { id: number; name: string; slug?: string };
@@ -303,8 +304,7 @@ export function SearchBox() {
                   >
                     <div className="w-10 h-10 bg-paper flex-none overflow-hidden">
                       {p.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={p.image} alt="" className="w-full h-full object-contain" />
+                        <HotlinkImage src={p.image} alt="" className="w-full h-full object-contain" />
                       ) : null}
                     </div>
                     <span className="flex-1 line-clamp-1">{p.name}</span>

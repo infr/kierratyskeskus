@@ -62,6 +62,24 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="fi">
       <body className="min-h-screen flex flex-col">
+        <div className="bg-amber-50 border-b border-amber-200 text-amber-900 text-xs sm:text-sm">
+          <div className="max-w-6xl mx-auto px-4 py-2 space-y-1">
+            <p>
+              <strong>Epävirallinen saavutettavuus&shy;peili.</strong> Ei ole Pääkaupunkiseudun Kierrätyskeskus Oy:n ylläpitämä. Ostokset tapahtuvat osoitteessa{' '}
+              <a className="underline underline-offset-2" href="https://kauppa.kierratyskeskus.fi" target="_blank" rel="noreferrer">
+                kauppa.kierratyskeskus.fi
+              </a>
+              .
+            </p>
+            <p lang="en" className="text-amber-900/80">
+              <strong>Unofficial accessibility mirror.</strong> Not affiliated with Pääkaupunkiseudun Kierrätyskeskus Oy. Purchases happen on{' '}
+              <a className="underline underline-offset-2" href="https://kauppa.kierratyskeskus.fi" target="_blank" rel="noreferrer">
+                kauppa.kierratyskeskus.fi
+              </a>
+              .
+            </p>
+          </div>
+        </div>
         <header className="bg-paper border-b border-line/60">
           <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-4 text-sm">
             <a href="/" className="text-muted hover:text-ink">Etusivu</a>

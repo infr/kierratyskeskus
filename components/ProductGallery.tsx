@@ -1,6 +1,7 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ProductImage, ImageSizes } from '@/lib/api';
+import { HotlinkImage } from './HotlinkImage';
 
 function pickSize(sizes: ImageSizes, preferred: (keyof ImageSizes)[]): string | undefined {
   for (const k of preferred) if (sizes[k]) return sizes[k];
@@ -83,9 +84,8 @@ export function ProductGallery({ images, alt }: { images: ProductImage[]; alt: s
           aria-label={zoomed ? 'Pienennä kuva' : 'Suurenna kuva'}
           aria-pressed={zoomed}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={zoomed ? zoomSrc ?? mainSrc : mainSrc}
+          <HotlinkImage
+            src={(zoomed ? zoomSrc ?? mainSrc : mainSrc) ?? ''}
             alt={alt}
             draggable={false}
             className={`w-full h-auto object-contain select-none transition-transform duration-150 ${zoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'}`}

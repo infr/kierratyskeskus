@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { formatPrice, productImage, type Category, type Product } from '@/lib/api';
 import { productHref } from '@/lib/categories';
+import { HotlinkImage } from './HotlinkImage';
 
 export function ProductCard({
   p,
@@ -20,8 +21,7 @@ export function ProductCard({
     >
       <div className="aspect-square overflow-hidden">
         {img ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <HotlinkImage
             src={img}
             alt={p.name}
             loading="lazy"
