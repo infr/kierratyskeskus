@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { SITE_NAME, SITE_TAGLINE, SITE_URL } from '@/lib/site';
 import { JsonLd } from '@/components/JsonLd';
+import { GoogleAnalytics } from '@/components/GoogleAnalytics';
 import { CategoriesMenu } from '@/components/CategoriesMenu';
 import { getCategories, type Category } from '@/lib/api';
 
@@ -100,6 +101,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           .
         </footer>
         <JsonLd data={websiteJsonLd} />
+        <GoogleAnalytics />
       </body>
     </html>
   );
