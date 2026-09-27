@@ -12,6 +12,12 @@ import { htmlToText } from '@/lib/text';
 import { absoluteUrl, SITE_NAME, truncate } from '@/lib/site';
 import { ProductPageView } from '@/components/ProductPageView';
 
+export const revalidate = 86400;
+
+export function generateStaticParams() {
+  return [];
+}
+
 type Props = {
   params: { catSlug: string; productSlug: string; id: string };
 };

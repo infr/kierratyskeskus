@@ -48,7 +48,10 @@ export async function GET(req: NextRequest) {
       href: productHref(p, allCategories),
     }));
 
-    return NextResponse.json({ query: q, total: data.total, categories, products });
+    return NextResponse.json(
+      { query: q, total: data.total, categories, products },
+      { headers: { 'CDN-Cache-Control': 'max-age=86400, stale-while-revalidate=604800' } },
+    );
   } catch (e) {
     return NextResponse.json(
       { query: q, categories: [], products: [], error: 'upstream' },

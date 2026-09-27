@@ -64,7 +64,7 @@ export type SearchParams = {
 
 const FETCH_OPTS: RequestInit = {
   headers: { Accept: 'application/json', 'User-Agent': 'kierratyskeskus-mobile-frontend/0.1' },
-  next: { revalidate: 60 },
+  next: { revalidate: 86400 },
 } as RequestInit;
 
 // The upstream search backend uses Lucene-style query parsing. Special
@@ -212,7 +212,7 @@ export async function getCategories(): Promise<Category[]> {
   const url = `${API_BASE}/categories`;
   const res = await fetch(url, {
     headers: { Accept: 'application/json' },
-    next: { revalidate: 3600 },
+    next: { revalidate: 86400 },
   } as RequestInit);
   if (!res.ok) throw new Error(`API ${res.status} for ${url}`);
   return res.json();
