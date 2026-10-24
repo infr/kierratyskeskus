@@ -18,11 +18,11 @@ import { JsonLd } from '@/components/JsonLd';
 import { FiltersSkeleton, ProductGridSkeleton } from '@/components/Skeleton';
 
 type PageProps = {
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
-  const parsed = parseSearchParams(searchParams);
+export async function generateMetadata(props: PageProps): Promise<Metadata> {
+  const parsed = parseSearchParams(await props.searchParams);
   const cats = parsed.filters?.categories;
   const firstCat = Array.isArray(cats) ? cats[0] : cats;
 
@@ -71,7 +71,8 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
   };
 }
 
-export default async function Home({ searchParams }: PageProps) {
+export default async function Home(props: PageProps) {
+  const searchParams = await props.searchParams;
   const parsed: ApiSearchParams = parseSearchParams(searchParams);
   const categories = await getCategories().catch(
     () => [] as Awaited<ReturnType<typeof getCategories>>,

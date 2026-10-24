@@ -32,8 +32,8 @@ const RESERVED_SLUGS = new Set([
 ]);
 
 type PageProps = {
-  params: { catSlug: string };
-  searchParams: Record<string, string | string[] | undefined>;
+  params: Promise<{ catSlug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
 async function resolveCategory(slug: string): Promise<{ category: Category; categories: Category[] } | null> {
@@ -44,7 +44,8 @@ async function resolveCategory(slug: string): Promise<{ category: Category; cate
   return { category, categories };
 }
 
-export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
+export async function generateMetadata(props: PageProps): Promise<Metadata> {
+  const [params, searchParams] = await Promise.all([props.params, props.searchParams]);
   const resolved = await resolveCategory(params.catSlug);
   if (!resolved) return { title: 'Kategoriaa ei löytynyt', robots: { index: false, follow: false } };
   const { category } = resolved;
@@ -65,7 +66,8 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   };
 }
 
-export default async function CategoryPage({ params, searchParams }: PageProps) {
+export default async function CategoryPage(props: PageProps) {
+  const [params, searchParams] = await Promise.all([props.params, props.searchParams]);
   const resolved = await resolveCategory(params.catSlug);
   if (!resolved) notFound();
   const { category, categories } = resolved;

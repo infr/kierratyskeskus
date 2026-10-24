@@ -19,10 +19,11 @@ export function generateStaticParams() {
 }
 
 type Props = {
-  params: { catSlug: string; productSlug: string; id: string };
+  params: Promise<{ catSlug: string; productSlug: string; id: string }>;
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   const product = await getProduct(params.id).catch(() => null);
   if (!product) {
     return { title: 'Tuotetta ei löytynyt', robots: { index: false, follow: false } };
@@ -56,7 +57,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function ProductPage({ params }: Props) {
+export default async function ProductPage(props: Props) {
+  const params = await props.params;
   const [product, categories] = await Promise.all([
     getProduct(params.id).catch(() => null),
     getCategories().catch(() => [] as Category[]),
